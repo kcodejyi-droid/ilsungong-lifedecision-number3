@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>오늘 밤 야식, 시킬까 말까?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root {
+    --bg: #FFFFFF;
+    --surface: #FFFBF6;
+    --surface-line: #EFE1D2;
+    --text: #241A16;
+    --text-muted: #8A7A6E;
+    --green: #1C8C5C;
+    --green-soft: #DEF5EA;
+    --yellow: #E08900;
+    --yellow-soft: #FFF0D6;
+    --red: #E5484D;
+    --red-soft: #FCE2E3;
+    --accent: #E8641A;
+    --accent-soft: #FDE9DA;
+    --shadow: 0 18px 40px -22px rgba(36,26,22,0.35);
+    --radius: 22px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17130F;
+      --surface: #221C17;
+      --surface-line: #3A2F26;
+      --text: #F5ECE6;
+      --text-muted: #B6A69C;
+      --green-soft: #163A2C;
+      --yellow-soft: #3A2E14;
+      --red-soft: #402024;
+      --accent-soft: #3A2314;
+      --shadow: 0 18px 40px -18px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17130F;
+    --surface: #221C17;
+    --surface-line: #3A2F26;
+    --text: #F5ECE6;
+    --text-muted: #B6A69C;
+    --green-soft: #163A2C;
+    --yellow-soft: #3A2E14;
+    --red-soft: #402024;
+    --accent-soft: #3A2314;
+    --shadow: 0 18px 40px -18px rgba(0,0,0,0.6);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Gowun Dodum', sans-serif;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .wrap {
+    max-width: 480px; margin: 0 auto; padding: 28px 20px 48px;
+    min-height: 100%; display: flex; flex-direction: column;
+  }
+  .brand {
+    display: flex; align-items: baseline; gap: 8px; margin-bottom: 22px;
+    color: var(--text-muted); font-size: 13px; letter-spacing: 0.02em;
+  }
+  .brand b { color: var(--text); font-family: 'Black Han Sans', sans-serif; font-size: 15px; }
+
+  .screen { display: none; flex: 1; flex-direction: column; }
+  .screen.active { display: flex; }
+
+  .receipt {
+    background: var(--surface);
+    border: 1px solid var(--surface-line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 34px 26px 28px;
+    position: relative;
+  }
+  .receipt::after {
+    content: "";
+    position: absolute; left: 0; right: 0; bottom: -11px; height: 22px;
+    background:
+      linear-gradient(-45deg, var(--bg) 8px, transparent 0),
+      linear-gradient(45deg, var(--bg) 8px, transparent 0);
+    background-size: 16px 22px;
+    background-position: left bottom;
+  }
+  .tag {
+    display: inline-block; font-size: 12px; color: var(--accent);
+    background: var(--accent-soft); padding: 5px 11px; border-radius: 999px;
+    margin-bottom: 14px; font-weight: 700;
+  }
+  h1.title {
+    font-family: 'Black Han Sans', sans-serif; font-weight: 400;
+    font-size: 26px; line-height: 1.45; margin: 0 0 14px;
+  }
+  .desc { color: var(--text-muted); font-size: 15px; line-height: 1.7; margin: 0 0 22px; }
+  .meta-line {
+    display: flex; gap: 14px; font-size: 13px; color: var(--text-muted);
+    border-top: 1px dashed var(--surface-line); padding-top: 16px; font-family: monospace;
+  }
+
+  .cta {
+    margin-top: 26px; width: 100%; border: none; background: var(--text); color: var(--bg);
+    font-family: 'Gowun Dodum', sans-serif; font-weight: 700; font-size: 17px;
+    padding: 17px; border-radius: 16px; cursor: pointer;
+  }
+  .cta:focus-visible, .opt:focus-visible, .ghost-btn:focus-visible {
+    outline: 3px solid var(--accent); outline-offset: 2px;
+  }
+  .cta:active { transform: scale(0.98); }
+
+  .signal-preview { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 22px; }
+  .signal-chip { text-align: center; padding: 12px 4px; border-radius: 12px; font-size: 22px; }
+  .signal-chip span { display: block; font-size: 10.5px; margin-top: 5px; color: var(--text-muted); line-height: 1.4; }
+
+  .progress-row { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }
+  .progress-track { flex: 1; height: 6px; background: var(--surface-line); border-radius: 999px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 999px; transition: width .35s ease; }
+  .q-count { font-family: monospace; font-size: 13px; color: var(--text-muted); white-space: nowrap; }
+  .q-text {
+    font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 20px;
+    line-height: 1.5; margin: 4px 0 24px;
+  }
+  .options { display: flex; flex-direction: column; gap: 11px; }
+  .opt {
+    text-align: left; background: var(--surface); border: 1.5px solid var(--surface-line);
+    border-radius: 15px; padding: 16px; font-family: 'Gowun Dodum', sans-serif;
+    font-size: 15px; line-height: 1.5; color: var(--text); cursor: pointer;
+    transition: border-color .15s ease, transform .1s ease;
+  }
+  .opt:hover { border-color: var(--accent); }
+  .opt:active { transform: scale(0.985); }
+
+  .back-link {
+    background: none; border: none; color: var(--text-muted);
+    font-family: 'Gowun Dodum', sans-serif; font-size: 13px;
+    padding: 0; margin-top: 20px; cursor: pointer; align-self: flex-start; text-decoration: underline;
+  }
+
+  .result-emoji { font-size: 54px; line-height: 1; margin-bottom: 10px; }
+  .result-kicker { color: var(--text-muted); font-size: 13px; margin-bottom: 6px; font-family: monospace; }
+  .result-title {
+    font-family: 'Black Han Sans', sans-serif; font-weight: 400; font-size: 25px; margin: 0 0 10px;
+  }
+  .result-line { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+  .result-body {
+    font-size: 15px; line-height: 1.75; color: var(--text-muted); margin-bottom: 26px;
+    background: var(--bg); border: 1px dashed var(--surface-line); border-radius: 12px; padding: 14px;
+  }
+
+  .gauge { margin-bottom: 8px; }
+  .gauge-track {
+    position: relative; height: 14px; border-radius: 999px; overflow: visible;
+    background: linear-gradient(to right,
+      var(--green) 0%, var(--green) 31.25%,
+      var(--yellow) 31.25%, var(--yellow) 64.5%,
+      var(--red) 64.5%, var(--red) 100%);
+  }
+  .gauge-marker {
+    position: absolute; top: 50%; width: 20px; height: 20px; border-radius: 50%;
+    background: var(--surface); border: 3px solid var(--text);
+    transform: translate(-50%, -50%); box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  }
+  .gauge-labels {
+    display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted);
+    margin-top: 8px; font-family: monospace;
+  }
+
+  .btn-row { display: flex; gap: 10px; margin-top: 22px; }
+  .ghost-btn {
+    flex: 1; padding: 15px; border-radius: 14px; border: 1.5px solid var(--surface-line);
+    background: transparent; color: var(--text); font-family: 'Gowun Dodum', sans-serif;
+    font-weight: 700; font-size: 14.5px; cursor: pointer;
+  }
+  .ghost-btn.primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+  .toast {
+    position: fixed; left: 50%; bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%) translateY(10px);
+    background: var(--text); color: var(--bg); padding: 11px 18px; border-radius: 999px;
+    font-size: 13.5px; opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><b>야식 결정 신호등</b> · 8문항</div>
+
+  <!-- 인트로 -->
+  <section class="screen active" id="screen-intro">
+    <div class="receipt">
+      <span class="tag">생활/야식 🌙</span>
+      <h1 class="title">오늘 밤 야식,<br>시킬까 말까?<br>내 위장과 이성의 대결</h1>
+      <p class="desc">배달 앱을 켜기 전, 8가지 질문으로 진짜 허기인지 가짜 배고픔인지 냉정하게 판정해드립니다.</p>
+      <div class="meta-line">
+        <span>문항 08</span><span>·</span><span>약 2분</span><span>·</span><span>판정 3단계</span>
+      </div>
+    </div>
+
+    <div class="signal-preview">
+      <div class="signal-chip" style="background:var(--green-soft)">🟢<span>배달 승인</span></div>
+      <div class="signal-chip" style="background:var(--yellow-soft)">🟡<span>30분 냉각</span></div>
+      <div class="signal-chip" style="background:var(--red-soft)">🔴<span>칼차단</span></div>
+    </div>
+
+    <button class="cta" id="btn-start">판정 시작하기</button>
+  </section>
+
+  <!-- 퀴즈 -->
+  <section class="screen" id="screen-quiz">
+    <div class="progress-row">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="q-count" id="q-count">Q1/8</div>
+    </div>
+    <p class="q-text" id="q-text"></p>
+    <div class="options" id="options"></div>
+    <button class="back-link" id="btn-back">← 이전 질문</button>
+  </section>
+
+  <!-- 결과 -->
+  <section class="screen" id="screen-result">
+    <div class="receipt" id="result-card" style="margin-bottom:0;">
+      <div class="result-emoji" id="result-emoji"></div>
+      <div class="result-kicker" id="result-kicker"></div>
+      <h2 class="result-title" id="result-title"></h2>
+      <p class="result-line" id="result-line"></p>
+
+      <div class="gauge">
+        <div class="gauge-track">
+          <div class="gauge-marker" id="gauge-marker"></div>
+        </div>
+        <div class="gauge-labels"><span>배달 승인</span><span>30분 냉각</span><span>칼차단</span></div>
+      </div>
+
+      <p class="result-body" id="result-body"></p>
+    </div>
+    <div class="btn-row">
+      <button class="ghost-btn" id="btn-retry">다시 진단하기</button>
+      <button class="ghost-btn primary" id="btn-save-image">결과 이미지 저장</button>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast">저장됐어요</div>
+
+<script>
+(function () {
+  const VERDICTS = [
+    { min: 8, max: 15, emoji: '🟢', name: '야식 배달 승인', color: 'var(--green)',
+      line: '고생한 나를 위한 완벽한 보상! 맛있게 먹으면 0칼로리?',
+      body: '당장 배달 앱을 켜고 가장 먹고 싶은 메뉴를 주문하세요. 단, 과식은 금물! 맛있게 먹고 푹 주무세요.' },
+    { min: 16, max: 23, emoji: '🟡', name: '30분 냉각 및 대체 간식 추천', color: 'var(--yellow)',
+      line: '진짜 배고픔인지 도파민인지 헷갈리죠? 물 한 잔 마시고 30분만 버텨보세요.',
+      body: '당장 앱을 끄고 미온수 한 잔을 마시거나 방울토마토, 견과류 같은 가벼운 대체재로 입을 달래며 30분만 버텨보세요.' },
+    { min: 24, max: 32, emoji: '🔴', name: '칼차단 및 양치 사수', color: 'var(--red)',
+      line: 'STOP! 내일 아침의 후회를 생각하세요. 지금 당장 양치하러 갑시다.',
+      body: '1초도 고민하지 말고 배달 앱을 삭제(또는 닫기)하고 곧바로 화장실로 가서 양치질을 하세요. 내일 아침 개운할 당신의 몸이 고마워할 것입니다!' },
+  ];
+
+  const QUESTIONS = [
+    { q: '지금 시각과 나의 마지막 식사 사이의 타임라인은 어떻게 되나요?', opts: [
+      { w:1, text:'저녁 먹은 지 꽤 돼서 속이 헛헛하고 진정한 야식 타임이다.' },
+      { w:2, text:'저녁을 먹긴 했는데, 은근히 뭔가 씹고 싶어 입이 심심하다.' },
+      { w:3, text:'저녁을 늦게 먹어서 아직 배가 부른데, 그냥 유튜브 보다가 영상에 홀렸다.' },
+      { w:4, text:'방금 야식 먹고 양치까지 완벽하게 끝냈다.' },
+    ]},
+    { q: '오늘 하루 내 몸과 정신이 겪은 스트레스의 강도는 어느 정도인가요?', opts: [
+      { w:1, text:'영혼까지 탈탈 털린 역대급 스트레스! 매콤하고 자극적인 도파민이 시급하다.' },
+      { w:2, text:'평소와 비슷한 수준의 피로감이 쌓여 있다.' },
+      { w:3, text:'오늘 하루는 비교적 평온하고 스트레스가 거의 없었다.' },
+      { w:4, text:'컨디션 최상! 내일 아침 공복 유산소가 기다려질 정도다.' },
+    ]},
+    { q: '만약 오늘 밤 야식을 참지 못하고 시키게 된다면, 내일 아침 나의 몸 상태는 어떨 것 같나요?', opts: [
+      { w:1, text:'붓기 하나 없이 맑고 개운하게 일어날 수 있다 (체질 특권!)' },
+      { w:2, text:'얼굴이 살짝 붓겠지만 오전 중에 금방 가라앉을 것이다.' },
+      { w:3, text:'속이 더부룩하고 죄책감에 시달리며 후회할 확률이 200%다.' },
+      { w:4, text:'위장이 거부반응을 일으키며 하루 종일 소화불량에 시달릴 것이다.' },
+    ]},
+    { q: '지금 당장 내 머릿속을 지배하고 있는 \'콕 집어 먹고 싶은 메뉴\'가 있나요?', opts: [
+      { w:1, text:'머릿속을 떠나지 않는 단 하나의 확고한 메뉴(떡볶이, 치킨 등)가 있다.' },
+      { w:2, text:'대략적인 카테고리(매운 거, 국물 있는 거 등)만 어렴풋이 떠오른다.' },
+      { w:3, text:'구체적인 메뉴는 없고 그냥 뭐든 배달 앱을 뒤적이고 싶을 뿐이다.' },
+      { w:4, text:'먹고 싶은 게 단 하나도 없고 음식 생각 자체가 없다.' },
+    ]},
+    { q: '내일 중요한 일정(중요한 미팅, 이른 아침 출근, 운동 약속 등)이 나를 기다리고 있나요?', opts: [
+      { w:1, text:'내일은 오전 내내 푹 자도 되는 자유의 날이다!' },
+      { w:2, text:'평소와 다를 바 없는 평범한 일상 일정이다.' },
+      { w:3, text:'아침 일찍 중요한 회의나 외출 약속이 있어서 컨디션 조절이 필요하다.' },
+      { w:4, text:'내일 하루의 성패를 가르는 초대형 프로젝트/일정이 대기 중이다.' },
+    ]},
+    { q: '냉장고나 식탁을 살펴보면 야식 대신 가볍게 허기를 달랠 대체재(물, 방울토마토, 견과류 등)가 있나요?', opts: [
+      { w:1, text:'집에 먹을 만한 건 일절 없고, 오직 배달만이 살 길이다.' },
+      { w:2, text:'물이나 간단한 간식거리가 있긴 한데 눈에 잘 안 들어온다.' },
+      { w:3, text:'냉장고에 가볍게 먹을 수 있는 건강한 대체 식품이 여럿 있다.' },
+      { w:4, text:'식단 관리를 위한 완벽한 대체 재료들이 가득 대기 중이다.' },
+    ]},
+    { q: '이번 주 내 식단 관리 및 체중 감량/유지 계획과 비교했을 때, 오늘의 야식은 어떤 의미인가요?', opts: [
+      { w:1, text:'이번 주는 이미 망했으니 치트데이로 삼아도 합리적이다.' },
+      { w:2, text:'계획에 약간 오차가 생기겠지만 이 정도는 유연하게 넘길 수 있다.' },
+      { w:3, text:'이번 주 목표 달성을 위해 꾹 참고 지켜야 하는 중요한 고비다.' },
+      { w:4, text:'완벽한 루틴을 달성하는 중이라 절대 무너질 수 없다.' },
+    ]},
+    { q: '지금 야식을 고민하는 진짜 원인은 \'실제 허기\'인가요, 아니면 화면 속 먹방에 자극받은 \'가짜 배고픔\'인가요?', opts: [
+      { w:1, text:'위장이 비명을 지르는 100% 리얼 찐 허기다.' },
+      { w:2, text:'진짜 배고픔 반, 입이 심심한 심리적 허기 반이다.' },
+      { w:3, text:'배는 안 고픈데 유튜브 먹방이나 쇼츠를 보다가 급발진했다.' },
+      { w:4, text:'완벽한 가짜 배고픔이자 단순 도파민 중독 증세다.' },
+    ]},
+  ];
+
+  let current = 0;
+  let answers = []; // weight numbers
+  let shuffledCache = [];
+  let activeQuestions = QUESTIONS;
+
+  const screens = {
+    intro: document.getElementById('screen-intro'),
+    quiz: document.getElementById('screen-quiz'),
+    result: document.getElementById('screen-result'),
+  };
+  function show(name) {
+    Object.values(screens).forEach(s => s.classList.remove('active'));
+    screens[name].classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function renderQuestion() {
+    const qData = activeQuestions[current];
+    document.getElementById('q-count').textContent = 'Q' + (current + 1) + '/' + activeQuestions.length;
+    document.getElementById('progress-fill').style.width = ((current) / activeQuestions.length * 100) + '%';
+    document.getElementById('q-text').textContent = qData.q;
+    document.getElementById('btn-back').style.visibility = current === 0 ? 'hidden' : 'visible';
+
+    if (!shuffledCache[current]) {
+      shuffledCache[current] = shuffle(qData.opts);
+    }
+    const opts = shuffledCache[current];
+
+    const wrap = document.getElementById('options');
+    wrap.innerHTML = '';
+    opts.forEach(o => {
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      btn.type = 'button';
+      btn.textContent = o.text;
+      btn.addEventListener('click', () => selectAnswer(o.w));
+      wrap.appendChild(btn);
+    });
+  }
+
+  function selectAnswer(weight) {
+    answers[current] = weight;
+    current += 1;
+    if (current >= activeQuestions.length) {
+      document.getElementById('progress-fill').style.width = '100%';
+      setTimeout(showResult, 150);
+    } else {
+      renderQuestion();
+    }
+  }
+
+  document.getElementById('btn-back').addEventListener('click', () => {
+    if (current > 0) {
+      current -= 1;
+      renderQuestion();
+    }
+  });
+
+  document.getElementById('btn-start').addEventListener('click', () => {
+    current = 0;
+    answers = [];
+    shuffledCache = [];
+    activeQuestions = shuffle(QUESTIONS);
+    show('quiz');
+    renderQuestion();
+  });
+
+  document.getElementById('btn-retry').addEventListener('click', () => {
+    current = 0;
+    answers = [];
+    shuffledCache = [];
+    show('intro');
+  });
+
+  function showResult() {
+    const total = answers.reduce((sum, w) => sum + w, 0);
+    const verdict = VERDICTS.find(v => total >= v.min && total <= v.max) || VERDICTS[1];
+
+    document.getElementById('result-emoji').textContent = verdict.emoji;
+    document.getElementById('result-kicker').textContent = '총점 ' + total + ' / 32';
+    document.getElementById('result-title').textContent = verdict.name;
+    document.getElementById('result-title').style.color = verdict.color;
+    document.getElementById('result-line').textContent = verdict.line;
+    document.getElementById('result-body').textContent = verdict.body;
+
+    const minScore = 8, maxScore = 32;
+    const pct = ((total - minScore) / (maxScore - minScore)) * 100;
+    document.getElementById('gauge-marker').style.left = pct + '%';
+
+    show('result');
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2600);
+  }
+
+  document.getElementById('btn-save-image').addEventListener('click', async () => {
+    const node = document.getElementById('result-card');
+    if (typeof html2canvas === 'undefined') {
+      showToast('이미지 생성 기능을 불러오지 못했어요. 잠시 후 다시 시도해주세요');
+      return;
+    }
+    try {
+      const bgColor = getComputedStyle(document.body).backgroundColor || '#ffffff';
+      const canvas = await html2canvas(node, { scale: 2, backgroundColor: bgColor, useCORS: true });
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = '야식결정_신호등_결과.png';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('이미지가 저장됐어요!');
+    } catch (e) {
+      showToast('이미지 저장에 실패했어요');
+    }
+  });
+})();
+</script>
+</body>
+</html>
